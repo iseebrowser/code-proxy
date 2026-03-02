@@ -1,0 +1,70 @@
+{
+  "app": {
+    "title": "Code Proxy"
+  },
+  "toolbar": {
+    "manageSessions": "Manage Sessions",
+    "settings": "Settings",
+    "language": "Language"
+  },
+  "status": {
+    "title": "Status",
+    "provider": "Provider",
+    "type": "Type",
+    "baseUrl": "Base URL",
+    "proxyPort": "Proxy Port",
+    "noneSelected": "None selected"
+  },
+  "howItWorks": {
+    "title": "How it works",
+    "description": "This proxy allows you to switch between different AI providers while using Claude Code. Select a provider and start the proxy to route Claude Code requests through the proxy server.",
+    "configuredToUse": "Claude Code will be configured to use:"
+  },
+  "proxy": {
+    "loading": "Loading...",
+    "startProxy": "Start Proxy",
+    "stopProxy": "Stop Proxy"
+  },
+  "provider": {
+    "selectProvider": "Select a provider",
+    "addProvider": "Add Provider",
+    "editProvider": "Edit Provider",
+    "name": "Provider",
+    "remark": "Remark",
+    "apiKey": "API Key",
+    "apiKeyPlaceholder": "ANTHROPIC_AUTH_TOKEN",
+    "baseUrl": "Base URL",
+    "baseUrlPlaceholder": "ANTHROPIC_BASE_URL",
+    "apiType": "API Type",
+    "anthropicMessages": "Anthropic Messages",
+    "openAIChat": "OpenAI Chat Completions",
+    "cancel": "Cancel",
+    "modify": "Modify",
+    "add": "Add",
+    "confirmDelete": "Confirm Delete",
+    "deleteMessage": "Are you sure you want to delete this provider?",
+    "delete": "Delete"
+  },
+  "session": {
+    "title": "Manage Sessions",
+    "loading": "Loading...",
+    "noSessions": "No sessions found",
+    "selectSession": "Select a session to view messages",
+    "loadingMessages": "Loading messages...",
+    "noMessages": "No messages in this session",
+    "copy": "Copy",
+    "confirmDelete": "Confirm Delete?",
+    "deleteMessage": "Are you sure you want to delete this session?",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "close": "Close"
+  },
+  "tray": {
+    "openMain": "Show Main Window",
+    "quit": "Quit"
+  },
+  "languages": {
+    "en": "English",
+    "zh": "中文"
+  }
+}

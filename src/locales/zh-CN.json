@@ -1,0 +1,70 @@
+{
+  "app": {
+    "title": "Code Proxy"
+  },
+  "toolbar": {
+    "manageSessions": "管理会话",
+    "settings": "设置",
+    "language": "语言"
+  },
+  "status": {
+    "title": "状态",
+    "provider": "供应商",
+    "type": "类型",
+    "baseUrl": "基础地址",
+    "proxyPort": "代理端口",
+    "noneSelected": "未选择"
+  },
+  "howItWorks": {
+    "title": "工作原理",
+    "description": "此代理允许您在使用 Claude Code 时切换不同的 AI 供应商。选择供应商并启动代理以将 Claude Code 请求路由通过代理服务器。",
+    "configuredToUse": "Claude Code 将被配置为使用："
+  },
+  "proxy": {
+    "loading": "加载中...",
+    "startProxy": "启动代理",
+    "stopProxy": "停止代理"
+  },
+  "provider": {
+    "selectProvider": "选择供应商",
+    "addProvider": "添加供应商",
+    "editProvider": "编辑供应商",
+    "name": "供应商",
+    "remark": "备注",
+    "apiKey": "API 密钥",
+    "apiKeyPlaceholder": "ANTHROPIC_AUTH_TOKEN",
+    "baseUrl": "基础地址",
+    "baseUrlPlaceholder": "ANTHROPIC_BASE_URL",
+    "apiType": "API 类型",
+    "anthropicMessages": "Anthropic Messages",
+    "openAIChat": "OpenAI Chat Completions",
+    "cancel": "取消",
+    "modify": "修改",
+    "add": "添加",
+    "confirmDelete": "确认删除",
+    "deleteMessage": "确定要删除此供应商吗？",
+    "delete": "删除"
+  },
+  "session": {
+    "title": "管理会话",
+    "loading": "加载中...",
+    "noSessions": "未找到会话",
+    "selectSession": "选择会话以查看消息",
+    "loadingMessages": "加载消息中...",
+    "noMessages": "此会话中没有消息",
+    "copy": "复制",
+    "confirmDelete": "确认删除？",
+    "deleteMessage": "确定要删除此会话吗？",
+    "cancel": "取消",
+    "delete": "删除",
+    "close": "关闭"
+  },
+  "tray": {
+    "openMain": "打开主界面",
+    "quit": "退出"
+  },
+  "languages": {
+    "en": "English",
+    "zh": "中文"
+  }
+}
