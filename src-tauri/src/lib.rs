@@ -427,6 +427,13 @@ pub fn run() {
     });
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            // When a second instance is started, hide the main window
+            tracing::info!("Second instance detected, hiding main window");
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.hide();
+            }
+        }))
         .plugin(tauri_plugin_opener::init())
         .manage(app_state)
         .setup(move |app| {
