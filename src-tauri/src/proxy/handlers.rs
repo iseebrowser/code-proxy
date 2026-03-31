@@ -19,6 +19,9 @@ use super::transform_responses::{
     anthropic_to_openai_responses, anthropic_to_openai_responses_response,
     openai_responses_to_anthropic, openai_responses_to_anthropic_response,
 };
+use super::streaming::{
+    is_sse_content_type, is_stream_requested, streaming_response_from_reqwest, StreamRewrite,
+};
 
 const BODY_LIMIT: usize = 10 * 1024 * 1024;
 
@@ -43,9 +46,32 @@ pub async fn handle_chat_completion(
     let provider = provider.read().await.clone();
     match parse_json_request(request).await {
         Ok((headers, mut body)) => {
+            let is_stream = is_stream_requested(&body);
             replace_model(&mut body, &provider.model);
             match normalized_api_type(&provider) {
                 ProviderApiType::Anthropic => {
+                    if is_stream {
+                        match openai_chat_to_anthropic(body) {
+                            Ok(outbound) => match send_upstream(
+                                &provider,
+                                &headers,
+                                outbound,
+                                TargetEndpoint::AnthropicMessages,
+                            )
+                            .await
+                            {
+                                Ok(response) if is_sse_content_type(response.headers().get("content-type")) => {
+                                    return streaming_response_from_reqwest(
+                                        response,
+                                        StreamRewrite::AnthropicToOpenAiChat,
+                                    );
+                                }
+                                Ok(response) => return upstream_non_sse_error(response).await,
+                                Err(error) => return error_response(StatusCode::BAD_GATEWAY, &error),
+                            },
+                            Err(error) => return error_response(StatusCode::BAD_REQUEST, &error),
+                        }
+                    }
                     match openai_chat_to_anthropic(body) {
                         Ok(outbound) => match async_json_forward(
                             &provider,
@@ -65,6 +91,15 @@ pub async fn handle_chat_completion(
                     }
                 }
                 ProviderApiType::OpenAiChat => {
+                    if is_stream {
+                        match send_upstream(&provider, &headers, body, TargetEndpoint::OpenAiChat).await {
+                            Ok(response) if is_sse_content_type(response.headers().get("content-type")) => {
+                                return streaming_response_from_reqwest(response, StreamRewrite::Passthrough);
+                            }
+                            Ok(response) => return upstream_non_sse_error(response).await,
+                            Err(error) => return error_response(StatusCode::BAD_GATEWAY, &error),
+                        }
+                    }
                     match async_json_forward(&provider, &headers, body, TargetEndpoint::OpenAiChat).await {
                         Ok(response) => json_response(StatusCode::OK, response),
                         Err(error) => error_response(StatusCode::BAD_GATEWAY, &error),
@@ -87,9 +122,32 @@ pub async fn handle_responses(
     let provider = provider.read().await.clone();
     match parse_json_request(request).await {
         Ok((headers, mut body)) => {
+            let is_stream = is_stream_requested(&body);
             replace_model(&mut body, &provider.model);
             match normalized_api_type(&provider) {
                 ProviderApiType::Anthropic => {
+                    if is_stream {
+                        match openai_responses_to_anthropic(body) {
+                            Ok(outbound) => match send_upstream(
+                                &provider,
+                                &headers,
+                                outbound,
+                                TargetEndpoint::AnthropicMessages,
+                            )
+                            .await
+                            {
+                                Ok(response) if is_sse_content_type(response.headers().get("content-type")) => {
+                                    return streaming_response_from_reqwest(
+                                        response,
+                                        StreamRewrite::AnthropicToOpenAiResponses,
+                                    );
+                                }
+                                Ok(response) => return upstream_non_sse_error(response).await,
+                                Err(error) => return error_response(StatusCode::BAD_GATEWAY, &error),
+                            },
+                            Err(error) => return error_response(StatusCode::BAD_REQUEST, &error),
+                        }
+                    }
                     match openai_responses_to_anthropic(body) {
                         Ok(outbound) => match async_json_forward(
                             &provider,
@@ -109,6 +167,15 @@ pub async fn handle_responses(
                     }
                 }
                 ProviderApiType::OpenAiResponses => {
+                    if is_stream {
+                        match send_upstream(&provider, &headers, body, TargetEndpoint::OpenAiResponses).await {
+                            Ok(response) if is_sse_content_type(response.headers().get("content-type")) => {
+                                return streaming_response_from_reqwest(response, StreamRewrite::Passthrough);
+                            }
+                            Ok(response) => return upstream_non_sse_error(response).await,
+                            Err(error) => return error_response(StatusCode::BAD_GATEWAY, &error),
+                        }
+                    }
                     match async_json_forward(&provider, &headers, body, TargetEndpoint::OpenAiResponses).await {
                         Ok(response) => json_response(StatusCode::OK, response),
                         Err(error) => error_response(StatusCode::BAD_GATEWAY, &error),
@@ -131,15 +198,47 @@ pub async fn handle_anthropic_message(
     let provider = provider.read().await.clone();
     match parse_json_request(request).await {
         Ok((headers, mut body)) => {
+            let is_stream = is_stream_requested(&body);
             replace_model(&mut body, &provider.model);
             match normalized_api_type(&provider) {
                 ProviderApiType::Anthropic => {
+                    if is_stream {
+                        match send_upstream(&provider, &headers, body, TargetEndpoint::AnthropicMessages).await {
+                            Ok(response) if is_sse_content_type(response.headers().get("content-type")) => {
+                                return streaming_response_from_reqwest(response, StreamRewrite::Passthrough);
+                            }
+                            Ok(response) => return upstream_non_sse_error(response).await,
+                            Err(error) => return error_response(StatusCode::BAD_GATEWAY, &error),
+                        }
+                    }
                     match async_json_forward(&provider, &headers, body, TargetEndpoint::AnthropicMessages).await {
                         Ok(response) => json_response(StatusCode::OK, response),
                         Err(error) => error_response(StatusCode::BAD_GATEWAY, &error),
                     }
                 }
                 ProviderApiType::OpenAiChat => {
+                    if is_stream {
+                        match anthropic_to_openai_chat(body) {
+                            Ok(outbound) => match send_upstream(
+                                &provider,
+                                &headers,
+                                outbound,
+                                TargetEndpoint::OpenAiChat,
+                            )
+                            .await
+                            {
+                                Ok(response) if is_sse_content_type(response.headers().get("content-type")) => {
+                                    return streaming_response_from_reqwest(
+                                        response,
+                                        StreamRewrite::OpenAiChatToAnthropic,
+                                    );
+                                }
+                                Ok(response) => return upstream_non_sse_error(response).await,
+                                Err(error) => return error_response(StatusCode::BAD_GATEWAY, &error),
+                            },
+                            Err(error) => return error_response(StatusCode::BAD_REQUEST, &error),
+                        }
+                    }
                     match anthropic_to_openai_chat(body) {
                         Ok(outbound) => match async_json_forward(
                             &provider,
@@ -159,6 +258,28 @@ pub async fn handle_anthropic_message(
                     }
                 }
                 ProviderApiType::OpenAiResponses => {
+                    if is_stream {
+                        match anthropic_to_openai_responses(body) {
+                            Ok(outbound) => match send_upstream(
+                                &provider,
+                                &headers,
+                                outbound,
+                                TargetEndpoint::OpenAiResponses,
+                            )
+                            .await
+                            {
+                                Ok(response) if is_sse_content_type(response.headers().get("content-type")) => {
+                                    return streaming_response_from_reqwest(
+                                        response,
+                                        StreamRewrite::OpenAiResponsesToAnthropic,
+                                    );
+                                }
+                                Ok(response) => return upstream_non_sse_error(response).await,
+                                Err(error) => return error_response(StatusCode::BAD_GATEWAY, &error),
+                            },
+                            Err(error) => return error_response(StatusCode::BAD_REQUEST, &error),
+                        }
+                    }
                     match anthropic_to_openai_responses(body) {
                         Ok(outbound) => match async_json_forward(
                             &provider,
@@ -203,6 +324,27 @@ async fn async_json_forward(
     body: Value,
     endpoint: TargetEndpoint,
 ) -> Result<Value, String> {
+    let response = send_upstream(provider, incoming_headers, body, endpoint).await?;
+    let status = response.status();
+    let text = response
+        .text()
+        .await
+        .map_err(|e| format!("Failed to read response body: {e}"))?;
+
+    if !status.is_success() {
+        return Err(format!("Upstream returned {status}: {text}"));
+    }
+
+    serde_json::from_str::<Value>(&text)
+        .map_err(|e| format!("Failed to parse upstream JSON response: {e}; body={text}"))
+}
+
+async fn send_upstream(
+    provider: &Provider,
+    incoming_headers: &HeaderMap,
+    body: Value,
+    endpoint: TargetEndpoint,
+) -> Result<reqwest::Response, String> {
     let client = reqwest::Client::new();
     let url = format!(
         "{}{}",
@@ -221,22 +363,19 @@ async fn async_json_forward(
 
     builder = apply_emulated_headers(builder, provider, endpoint);
 
-    let response = builder
+    builder
         .send()
         .await
-        .map_err(|e| format!("Request forwarding failed: {e}"))?;
+        .map_err(|e| format!("Request forwarding failed: {e}"))
+}
+
+async fn upstream_non_sse_error(response: reqwest::Response) -> Response<Body> {
     let status = response.status();
     let text = response
         .text()
         .await
-        .map_err(|e| format!("Failed to read response body: {e}"))?;
-
-    if !status.is_success() {
-        return Err(format!("Upstream returned {status}: {text}"));
-    }
-
-    serde_json::from_str::<Value>(&text)
-        .map_err(|e| format!("Failed to parse upstream JSON response: {e}; body={text}"))
+        .unwrap_or_else(|e| format!("Failed to read upstream response: {e}"));
+    error_response(status, &format!("Expected SSE upstream response but received: {text}"))
 }
 
 fn apply_emulated_headers(
