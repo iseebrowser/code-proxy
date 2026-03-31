@@ -20,13 +20,6 @@ pub struct McpState {
 }
 
 impl McpState {
-    pub fn new() -> Self {
-        Self {
-            proxy_server: Arc::new(RwLock::new(None)),
-            current_provider_id: Arc::new(RwLock::new(None)),
-            app_handle: Arc::new(Mutex::new(None)),
-        }
-    }
 }
 
 pub async fn run_mcp_server(

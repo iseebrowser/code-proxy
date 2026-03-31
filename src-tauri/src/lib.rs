@@ -6,7 +6,10 @@ mod provider;
 mod mcp;
 mod session_manager;
 
-use std::sync::{Arc, Mutex};
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc, Mutex,
+};
 use tauri::{
     menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem},
     tray::{MouseButton, TrayIconBuilder, TrayIconEvent},
@@ -18,6 +21,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 pub struct AppState {
     pub proxy_server: Arc<RwLock<Option<proxy::server::ProxyServer>>>,
     pub current_provider_id: Arc<RwLock<Option<i64>>>,
+    pub is_quitting: Arc<AtomicBool>,
 }
 
 #[tauri::command]
@@ -166,6 +170,7 @@ async fn list_sessions() -> Result<Vec<session_manager::SessionMeta>, String> {
 }
 
 #[tauri::command]
+#[allow(non_snake_case)]
 async fn get_session_messages(
     providerId: String,
     sourcePath: String,
@@ -180,6 +185,7 @@ async fn get_session_messages(
 }
 
 #[tauri::command]
+#[allow(non_snake_case)]
 async fn delete_session(sourcePath: String) -> Result<bool, String> {
     let path = std::path::Path::new(&sourcePath);
     if !path.exists() {
@@ -373,6 +379,7 @@ pub fn run() {
     let app_state = AppState {
         proxy_server: Arc::new(RwLock::new(None)),
         current_provider_id: Arc::new(RwLock::new(None)),
+        is_quitting: Arc::new(AtomicBool::new(false)),
     };
 
     // Auto-start proxy if there's a saved provider
@@ -469,6 +476,8 @@ pub fn run() {
                             show_window(app);
                         }
                         "quit" => {
+                            let state = app.state::<AppState>();
+                            state.is_quitting.store(true, Ordering::SeqCst);
                             app.exit(0);
                         }
                         id if id.starts_with("provider_") => {
@@ -533,9 +542,12 @@ pub fn run() {
         })
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
-                // Hide window instead of closing
-                let _ = window.hide();
-                api.prevent_close();
+                let state = window.state::<AppState>();
+                if !state.is_quitting.load(Ordering::SeqCst) {
+                    // Hide window instead of closing during normal user close.
+                    let _ = window.hide();
+                    api.prevent_close();
+                }
             }
         })
         .invoke_handler(tauri::generate_handler![

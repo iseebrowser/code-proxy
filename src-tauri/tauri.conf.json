@@ -14,7 +14,8 @@
       {
         "title": "Code Proxy",
         "width": 960,
-        "height": 660
+        "height": 660,
+        "visible": false
       }
     ],
     "security": {

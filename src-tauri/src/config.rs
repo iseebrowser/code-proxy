@@ -104,7 +104,3 @@ pub fn update_claude_config(enable: bool) -> Result<(), String> {
     tracing::info!("Claude config updated, enable: {}", enable);
     Ok(())
 }
-
-pub fn get_current_claude_config() -> Result<Value, String> {
-    read_claude_config()
-}

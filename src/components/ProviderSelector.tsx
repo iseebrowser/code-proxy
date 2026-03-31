@@ -166,23 +166,25 @@ export function ProviderSelector({ selectedProvider, onSelect, isRunning, disabl
           type="button"
           onClick={() => !disabled && setIsOpen(!isOpen)}
           className={cn(
-            "inline-flex items-center justify-between rounded-md px-4 py-2 text-sm w-48",
+            "inline-flex items-start justify-between rounded-md px-4 py-2 text-sm w-72",
             "bg-zinc-800 text-zinc-100 border border-zinc-700",
             "hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500",
             "disabled:opacity-50 disabled:cursor-not-allowed"
           )}
         >
-          <span>{selectedProvider?.name || t("provider.selectProvider")}</span>
+          <span className="block flex-1 pr-3 text-left whitespace-normal break-words leading-5">
+            {selectedProvider?.name || t("provider.selectProvider")}
+          </span>
           <span className="ml-2">▼</span>
         </button>
 
         {isOpen && (
-          <div className="absolute top-full left-0 mt-1 w-56 bg-zinc-800 border border-zinc-700 rounded-md shadow-lg z-50">
+          <div className="absolute top-full left-0 mt-1 w-[21rem] bg-zinc-800 border border-zinc-700 rounded-md shadow-lg z-50">
             {providers.map((provider) => (
               <div
                 key={provider.id}
                 className={cn(
-                  "flex items-center justify-between px-3 py-2 text-sm cursor-pointer",
+                  "flex items-start justify-between gap-2 px-3 py-2 text-sm cursor-pointer",
                   "text-zinc-100 hover:bg-zinc-700",
                   selectedProvider?.id === provider.id && "bg-zinc-700"
                 )}
@@ -200,8 +202,10 @@ export function ProviderSelector({ selectedProvider, onSelect, isRunning, disabl
                   await refreshTrayMenu();
                 }}
               >
-                <span>{provider.name}</span>
-                <div className="flex items-center gap-1">
+                <span className="min-w-0 flex-1 text-left whitespace-normal break-words leading-5">
+                  {provider.name}
+                </span>
+                <div className="flex shrink-0 items-center gap-1 pt-0.5">
                   <button
                     type="button"
                     onClick={(e) => {

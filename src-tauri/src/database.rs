@@ -2,7 +2,6 @@ use rusqlite::{Connection, Result};
 use std::path::PathBuf;
 use std::sync::Mutex;
 
-static DB_PATH: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
 static DB_CONNECTION: std::sync::OnceLock<Mutex<Connection>> = std::sync::OnceLock::new();
 
 fn get_db_path() -> PathBuf {
