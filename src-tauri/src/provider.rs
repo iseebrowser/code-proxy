@@ -69,9 +69,10 @@ pub fn get_provider(conn: &Connection, id: i64) -> Result<Option<Provider>, Stri
 }
 
 pub fn add_provider(conn: &Connection, input: ProviderInput) -> Result<i64, String> {
+    let api_type = normalize_api_type(&input.api_type);
     conn.execute(
         "INSERT INTO providers (name, remark, model, api_type, base_url, api_key) VALUES (?, ?, ?, ?, ?, ?)",
-        [&input.name, &input.remark, &input.model, &input.api_type, &input.base_url, &input.api_key],
+        [&input.name, &input.remark, &input.model, &api_type, &input.base_url, &input.api_key],
     ).map_err(|e| format!("Failed to insert provider: {}", e))?;
 
     let id = conn.last_insert_rowid();
@@ -80,9 +81,10 @@ pub fn add_provider(conn: &Connection, input: ProviderInput) -> Result<i64, Stri
 }
 
 pub fn update_provider(conn: &Connection, id: i64, input: ProviderInput) -> Result<(), String> {
+    let api_type = normalize_api_type(&input.api_type);
     conn.execute(
         "UPDATE providers SET name = ?, remark = ?, model = ?, api_type = ?, base_url = ?, api_key = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-        rusqlite::params![input.name, input.remark, input.model, input.api_type, input.base_url, input.api_key, id],
+        rusqlite::params![input.name, input.remark, input.model, api_type, input.base_url, input.api_key, id],
     ).map_err(|e| format!("Failed to update provider: {}", e))?;
 
     tracing::info!("Updated provider: {} (id: {})", input.name, id);
@@ -95,4 +97,12 @@ pub fn delete_provider(conn: &Connection, id: i64) -> Result<(), String> {
 
     tracing::info!("Deleted provider id: {}", id);
     Ok(())
+}
+
+fn normalize_api_type(api_type: &str) -> String {
+    match api_type {
+        "openai" => "openai_chat".to_string(),
+        "anthropic" | "openai_chat" | "openai_responses" => api_type.to_string(),
+        _ => "anthropic".to_string(),
+    }
 }

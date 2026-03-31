@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ProviderSelector } from "./components/ProviderSelector";
 import { ProxyToggle } from "./components/ProxyToggle";
 import { SessionManager } from "./components/SessionManager";
@@ -13,6 +13,7 @@ function App() {
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [lang, setLang] = useState<"en-US" | "zh-CN">("en-US");
   const [ready, setReady] = useState(false);
+  const langMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Initialize i18n first
@@ -42,6 +43,31 @@ function App() {
       unlisten.then((fn) => fn());
     };
   }, []);
+
+  // Close language menu on click outside or ESC key
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (langMenuRef.current && !langMenuRef.current.contains(event.target as Node)) {
+        setShowLangMenu(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setShowLangMenu(false);
+      }
+    }
+
+    if (showLangMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showLangMenu]);
 
   async function loadCurrentProvider() {
     try {
@@ -104,13 +130,13 @@ function App() {
           </button>
 
           {/* Language Selector */}
-          <div className="relative">
+          <div className="relative ml-auto" ref={langMenuRef}>
             <button
               onClick={() => setShowLangMenu(!showLangMenu)}
               className="px-4 py-2 rounded-md font-medium text-sm transition-colors bg-zinc-700 hover:bg-zinc-600 text-white"
-              title={t("toolbar.language")}
+              title={lang === "zh-CN" ? "中文" : "English"}
             >
-              {lang === "zh-CN" ? "中文" : "EN"}
+              ⚙️
             </button>
             {showLangMenu && (
               <div className="absolute right-0 mt-2 w-32 bg-zinc-700 rounded-md shadow-lg z-10">

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use axum::{Router, routing::post, routing::get};
 use tokio::sync::{oneshot, RwLock};
 use crate::provider::Provider;
-use super::handlers::{handle_chat_completion, handle_anthropic_message, health_check};
+use super::handlers::{handle_anthropic_message, handle_chat_completion, handle_responses, health_check};
 
 const PROXY_PORT: u16 = 13721;
 
@@ -33,6 +33,7 @@ impl ProxyServer {
         let task = tokio::spawn(async move {
             let app = Router::new()
                 .route("/v1/chat/completions", post(handle_chat_completion))
+                .route("/v1/responses", post(handle_responses))
                 .route("/v1/messages", post(handle_anthropic_message))
                 .route("/health", get(health_check))
                 .with_state(provider);
@@ -48,7 +49,7 @@ impl ProxyServer {
                 }
             };
 
-            axum::serve(listener, app)
+            let _ = axum::serve(listener, app)
                 .with_graceful_shutdown(async {
                     let _ = shutdown_rx.await;
                 })

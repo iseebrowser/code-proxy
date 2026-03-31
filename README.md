@@ -10,7 +10,7 @@ A Claude Code proxy application that performs protocol conversion between OpenAI
 - **Auto-Update Config**: Automatically updates Claude Code `settings.json`
 - **MCP Server**: Built-in MCP server for provider management
 - **System Tray**: Runs in system tray with quick access menu
-- **Internationalization**: Supports Chinese and English UI languages
+- **Internationalization**: Supports Chinese and English UI languages (⚙️ button in toolbar)
 - **Session Management**: Browse and manage Claude Code sessions
 
 ## Architecture
@@ -90,6 +90,28 @@ Claude Code sends placeholder model names that are automatically replaced:
 - `code-opus-model` → provider's configured model
 - `code-sonnet-model` → provider's configured model
 - `code-fast-model` → provider's configured model
+
+## Language Settings
+
+The application supports Chinese (zh-CN) and English (en-US) UI languages.
+
+### Switching Language
+
+1. Click the ⚙️ button on the right side of the toolbar
+2. Select your preferred language from the dropdown menu:
+   - **English**: English interface
+   - **中文**: Chinese interface
+
+### Closing Language Menu
+
+- Click outside the menu
+- Press ESC key
+
+### Notes
+
+- On first launch, the app automatically detects the system language
+- Language preference is saved to database and persists across restarts
+- Hover over the ⚙️ button to see the current default language
 
 ## License
 

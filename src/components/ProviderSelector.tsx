@@ -111,7 +111,7 @@ export function ProviderSelector({ selectedProvider, onSelect, isRunning, disabl
       name: provider.name,
       remark: provider.remark,
       model: provider.model,
-      api_type: provider.api_type,
+      api_type: provider.api_type === "openai" ? "openai_chat" : provider.api_type,
       base_url: provider.base_url,
       api_key: provider.api_key,
     });
@@ -308,7 +308,8 @@ export function ProviderSelector({ selectedProvider, onSelect, isRunning, disabl
                   className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded text-zinc-100"
                 >
                   <option value="anthropic">{t("provider.anthropicMessages")}</option>
-                  <option value="openai">{t("provider.openAIChat")}</option>
+                  <option value="openai_chat">{t("provider.openAIChat")}</option>
+                  <option value="openai_responses">OpenAI Responses API</option>
                 </select>
               </div>
             </div>

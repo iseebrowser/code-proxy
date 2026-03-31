@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm:*)",
+      "Bash(cargo build:*)",
+      "Bash(ls:*)",
+      "Bash(taskkill:*)",
+      "Bash(netstat:*)",
+      "Bash(timeout 5 ./code-proxy.exe:*)",
+      "Bash(cargo check:*)",
+      "WebSearch",
+      "WebFetch(domain:tauri.app)",
+      "WebFetch(domain:v1.tauri.app)",
+      "WebFetch(domain:v2.tauri.app)",
+      "WebFetch(domain:docs.rs)",
+      "Bash(tasklist:*)",
+      "Bash(claude mcp:*)",
+      "Bash(curl:*)",
+      "Bash(powershell:*)",
+      "WebFetch(domain:help.aliyun.com)",
+      "WebFetch(domain:dashscope.console.aliyun.com)"
+    ]
+  }
+}
